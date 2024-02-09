@@ -11,16 +11,18 @@
 
 (defun open-file (filename)
     """Открытие файла на чтение"""
-    (let ((*stream* (open filename
+    (setf *line-number* 0)
+    (setf *stream* (open filename
                         :direction :input
-                        :if-does-not-exist :error)))))
+                        :if-does-not-exist :error)))
 
 (defun close-file ()
     """Закрытие файла"""
     (close *stream*))
 
 (defun print-line-number ()
-    (format t "line number ~a~%:\n" *line-number*))
+    (format t "line number:~a~%" *line-number*)
+    (setf *line-number* (+ 1 *line-number*)))
 
 (defun get-line ()
     """Считать строку из файла"""
