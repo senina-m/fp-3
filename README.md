@@ -132,8 +132,93 @@ o o o o o o . . x x x
                          (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
            (input:close-file))))
 ```
-
 Большинство функций в проекте задокументированно в коде, поэтому не буду их тут расписывать. 
+
+### Пример исполнения
+
+Входной файл
+```
+9 2
+3 10
+1 2
+3 4
+5 6
+7 8
+9 10
+11 12
+13 14
+15 16
+17 18
+19 20
+```
+
+```
+* (main 3 "input" :line t :lagrange t)
+line=T
+lagrange=T
+win size=3
+Can't find middle of odd window
+NIL
+```
+
+```
+* (main 4 "input" :line t :lagrange t)
+line=T
+lagrange=T
+win size=4
+line number:0
+
+((2) (9)) 
+line number:1
+
+((3 2) (10 9)) 
+line number:2
+x(1) value in numbers pair has to be greater than last x(3) value in window
+NIL
+line number:3
+x(3) value in numbers pair has to be greater than last x(3) value in window
+NIL
+line number:4
+
+((5 3 2) (6 10 9)) 
+line number:5
+
+((7 5 3 2) (8 6 10 9)) 
+line-appr: (4 8)
+lagrange-appr: (4 83/10)
+line number:6
+
+((9 7 5 3) (10 8 6 10)) 
+line-appr: (6 7)
+lagrange-appr: (6 53/8)
+line number:7
+
+((11 9 7 5) (12 10 8 6)) 
+line-appr: (8 9)
+lagrange-appr: (8 9)
+line number:8
+
+((13 11 9 7) (14 12 10 8)) 
+line-appr: (10 11)
+lagrange-appr: (10 11)
+line number:9
+
+((15 13 11 9) (16 14 12 10)) 
+line-appr: (12 13)
+lagrange-appr: (12 13)
+line number:10
+
+((17 15 13 11) (18 16 14 12)) 
+line-appr: (14 15)
+lagrange-appr: (14 15)
+line number:11
+
+((19 17 15 13) (20 18 16 14)) 
+line-appr: (16 17)
+lagrange-appr: (16 17)
+line number:12
+T
+```
 
 # Заключение
 В этой лабораторной работе я лучше познакомилась с математической "обвеской" языка lisp научилась здесь работать с массивами. 
