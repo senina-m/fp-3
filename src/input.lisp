@@ -1,5 +1,6 @@
 (defpackage :input
   (:use :cl)
+  (:documentation "Пакет потокового чтения данных из файла")
   (:export get-line
            open-file
            close-file))

@@ -1,5 +1,6 @@
 (defpackage :lagrange
   (:use :cl)
+  (:documentation "Пакет интрополяции методом Лагранжа")
   (:export appr-lagrange))
 
 (in-package :lagrange)

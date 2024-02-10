@@ -93,5 +93,39 @@ o o o o o o . . x x x
 
 # Реализация
 
+#### Вся программа состоит из 4х пакетов-модулей:
+
+[Пакет потокового чтения данных из файла](/src/input.lisp)
+
+[Пакет интрополяции линейным методом](/src/line.lisp)
+
+[Пакет интрополяции методом Лагранжа](/src/lagrange.lisp)
+
+[Пакет с функцией входа и управлением вычислениями](/src/lagrange.lisp)
+
+#### Поток вычисления в программе такой:
+
+```cl
+(defun main (win-size filename &key (line nil) (lagrange nil))
+  """Интрополяция потока точек"""
+  (format t "line=~a~%" line)
+  (format t "lagrange=~a~%" lagrange)
+  (format t "win size=~a~%" win-size)
+  (if (/= (mod win-size 2) 0) (format t "Can't find middle of odd window")
+    (progn (input:open-file filename)
+           (let ((win nil))
+             (loop :for l = (input:get-line)
+                   :until (eq l :eof)
+                   :do (handler-case
+                           (progn (setf win (push-line win l win-size))
+                                  (when (= (length (first win)) win-size)
+                                    (multiple-value-bind (x-list y-list point) (make-arrays-from-win win)
+							 (when line (format t "line-appr: (~a ~a)~%" point (line:appr-line x-list y-list point)))
+							 (when lagrange (format t "lagrange-appr: (~a ~a)~%" point (lagrange:appr-lagrange x-list y-list point))))))
+                         (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
+           (input:close-file))))
+```
 
 # Заключение
+В этой лабораторной работе я лучше познакомилась с математической "обвеской" языка lisp научилась здесь работать с массивами. 
+И лучше разобралась с работой пакетов и экспортов функций. Также я опробовала механизм сигналов для "отлова" ошибок и способами работы с возникшими ошибками.

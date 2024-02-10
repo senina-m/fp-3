@@ -1,5 +1,6 @@
 (defpackage :line
   (:use :cl)
+  (:documentation "Пакет интрополяции линейным методом")
   (:export appr-line))
 
 (in-package :line)
