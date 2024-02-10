@@ -1,6 +1,13 @@
 (defpackage :main
   (:use :cl)
-  (:export main))
+  (:documentation "Модуль для интрополяции")
+  (:export :main
+           :parse-string-to-float
+           :add-values
+           :push-line-fault
+           :push-line-fault-text
+           :push-line
+           :make-arrays-from-win))
 
 (in-package :main)
 (load "src/input.lisp")
@@ -37,17 +44,17 @@
 
 (defun push-line (win line win-size)
     """Добавление новой пару значений"""
-    (if (null line) (error 'push-line-fault :text "line can't be empty~%")
+    (if (null line) (error 'push-line-fault :text "line can't be empty")
         (let ((nums (parse-string-to-float line)))
             (cond ; считанная строка не должна быть пустой
-                  ((null nums) (error 'push-line-fault :text "line has to contain numbers, but is null~%"))
+                  ((null nums) (error 'push-line-fault :text "line has to contain numbers, but is null"))
                   ; в строке должно быть ровно два числа
-                  ((/= (length nums) 2) (error 'push-line-fault :text (format nil "line has contain exectly two numbers but has ~{~a~}~%" nums)))
+                  ((/= (length nums) 2) (error 'push-line-fault :text (format nil "line has contain exectly two numbers but has (~{~a ~})" nums)))
                   ; новый х должен быть больше последнего старого
                   ((and (not (null win))
                         (<= (first nums) (first (first win))))
                    (error 'push-line-fault :text 
-                                            (format t "x(~a) value in numbers pair has to be greater than last x(~a) value in window~%" 
+                                            (format t "x(~a) value in numbers pair has to be greater than last x(~a) value in window" 
                                                     (first nums) (first (first win)))))
                   ; всё в порядке, добавляем новые значения
                   (t (add-values win nums win-size))))))
@@ -84,24 +91,3 @@
                                                     (when lagrange (format t "lagrange-appr: (~a ~a)~%" point (lagrange:appr-lagrange x-list y-list point))))))
                                 (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
                 (input:close-file))))
-
-"""
-;тестовый сценарий, чтобы проверить, что сигналы работают
-(defun error-caller ()
-    (error 'push-line-fault :text "line has to contain numbers"))
-
-(defun runner ()
-    (loop for i from 0 to 3
-        do 
-        ; (print i )))
-        (handler-case
-            (progn (error-caller) (print i))
-            (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
-
-;тестовый сценарий для push-line
-(defun runner ()
-    (handler-case
-        (progn (print (push-line nil "7 8" 3)))
-        ;(progn (print (push-line '((1 2 3) (4 5 6)) "7 8" 3)))
-        (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe)))))
-"""

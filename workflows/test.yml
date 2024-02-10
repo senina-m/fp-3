@@ -5,10 +5,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Format files
-        run: sudo apt install emacs; bash ./lisp-format src/trie.lisp > src/trie_from.lisp;
-      - name: Compare with format
-        run: diff src/trie.lisp src/trie_from.lisp;
+      - name: Format main
+        run: sudo apt install emacs; bash ./lisp-format src/main.lisp > src/main_from.lisp;
+      - name: Compare with format main
+        run: diff src/main.lisp src/main_from.lisp;
+      - name: Format input
+        run: bash ./lisp-format src/input.lisp > src/input_from.lisp;
+      - name: Compare with format input
+        run: diff src/input.lisp src/input_from.lisp;
+      - name: Format line
+        run: bash ./lisp-format src/line.lisp > src/line_from.lisp;
+      - name: Compare with format line
+        run: diff src/line.lisp src/line_from.lisp;
+      - name: Format lagrange
+        run: bash ./lisp-format src/lagrange.lisp > src/lagrange_from.lisp;
+      - name: Compare with format lagrange
+        run: diff src/lagrange.lisp src/lagrange_from.lisp;
   test:
     runs-on: ubuntu-latest
     steps:

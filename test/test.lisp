@@ -1,37 +1,6 @@
 (load "~/quicklisp/setup.lisp")
-(load "src/trie.lisp")
+(load "src/main.lisp")
 (ql:quickload :lisp-unit)
-(ql:quickload :check-it)
-
-					;  (with-open-file (output "tmp1"
-					;                             :direction :output
-					;                             :if-exists :supersede)
-					;                     (progn
-					;                     (mapcar #'(lambda(x) (format output "~a~%" x)) (trie:list-words t1))
-					;                     (trie:print-trie output t1)))
-					;     (with-open-file (output "tmp2"
-					;                             :direction :output
-					;                             :if-exists :supersede)
-					;                     (progn
-					;                     (mapcar #'(lambda(x) (format output "~a~%" x)) (sort (trie:list-words t2) #'string-lessp))
-					;                     (trie:print-trie output t2)))
-
-(defun compare-tries (t1 t2)
-					;это будет работать пока мы уверены, что words возвращает set т.е. без повторений
-  (not (set-exclusive-or (trie:list-words t1) (trie:list-words t2) :test #'string=)))
-
-(defun gen-str (len)
-  (let ((l
-	 (check-it:generate (check-it:generator (list (character #\a #\z) :min-length 0 :max-length len)))))
-    (if (null l)
-	nil
-      (concatenate 'string l))))
-
-(defun gen-str-list()
-  (let ((list-len (check-it:generate (check-it:generator (integer -1 10))))
-        (str-len (check-it:generate (check-it:generator (integer 0 10)))))
-    (loop for i from 0 to list-len
-	  collect (gen-str str-len))))
 
 (defun compare-files (fst-name snd-name)
   (with-open-file (i-res fst-name
@@ -48,168 +17,94 @@
 					; (format t "RES=~a~%" result)
 				    (return-from compare-files result)))))
 
-(defun creation-test(res-name answer-name initial-contents)
+(defun parse-string-to-float-test (res-name answer-name str)
   (with-open-file (output res-name
                           :direction :output
                           :if-exists :supersede)
-		  (trie:print-trie output (trie:make-trie :initial-contents initial-contents)))
+		(format output "(~{~a ~})~%" (main:parse-string-to-float str)))
   (compare-files res-name answer-name))
 
-(defun insert-test(res-name answer-name initial-contents insert-contents)
-  (with-open-file (output res-name
-                          :direction :output
-                          :if-exists :supersede)
-					; (format stream "(#\\~c" prefix))
-		  (trie:print-trie output (trie:insert (trie:make-trie :initial-contents initial-contents) insert-contents)))
-  (compare-files res-name answer-name))
+(defun add-values-test (res-name answer-name win nums size)
+	(with-open-file (output res-name
+							:direction :output
+							:if-exists :supersede)
+			(format output "(~{~a ~})~%" (main:add-values win nums size)))
+	(compare-files res-name answer-name))
 
-(defun words-test(res-name answer-name initial-contents)
-  (with-open-file (output res-name
-                          :direction :output
-                          :if-exists :supersede)
-		  (mapcar #'(lambda(x) (format output "~a~%" x))
-			  (trie:list-words (trie:make-trie :initial-contents initial-contents))))
-  (compare-files res-name answer-name))
+(defun push-line-test (res-name answer-name win line size)
+	(with-open-file (output res-name
+							:direction :output
+							:if-exists :supersede)
+		(handler-case
+			(format output "(~{~a ~})~%" (main:push-line win line size))
+			(main:push-line-fault (pe) (format output "~a" (main:push-line-fault-text pe)))))
+	(compare-files res-name answer-name))
 
-(defun map-test(res-name answer-name initial-contents func)
-  (with-open-file (output res-name
-                          :direction :output
-                          :if-exists :supersede)
-		  (mapcar #'(lambda(x) (format output "~a~%" x))
-			  (trie:map-trie (trie:make-trie :initial-contents initial-contents) func)))
-  (compare-files res-name answer-name))
+(defun print-array (output arr)
+	(format output "(")
+  	(loop for i below (car (array-dimensions arr)) do
+    	(let ((cell (aref arr i)))
+            (format output "~a " cell)))
+    (format output ")~%"))
 
-(defun search-test(res-name answer-name initial-contents word-prefix)
-  (with-open-file (output res-name
-                          :direction :output
-                          :if-exists :supersede)
-		  (mapcar #'(lambda(x) (format output "~a~%" x))
-			  (trie:search-trie (trie:make-trie :initial-contents initial-contents) word-prefix)))
-  (compare-files res-name answer-name))
-
-(defun delete-test(res-name answer-name initial-contents delete-prefix)
-  (with-open-file (output res-name
-                          :direction :output
-                          :if-exists :supersede)
-		  (trie:print-trie output (trie:delete-trie (trie:make-trie :initial-contents initial-contents) delete-prefix)))
-  (compare-files res-name answer-name))
-
-(defun sum-test(res-name answer-name init-1 init-2)
-  (with-open-file (output res-name
-                          :direction :output
-                          :if-exists :supersede)
-		  (trie:print-trie output (trie:sum-tries (trie:make-trie :initial-contents init-1) (trie:make-trie :initial-contents init-2))))
-  (compare-files res-name answer-name))
-
-(defun create-property-based()
-  (let ((lst1 (gen-str-list)))
-    (let ((lst2  (reverse (copy-list lst1))))
-      (compare-tries (trie:make-trie :initial-contents lst1)
-                     (trie:make-trie :initial-contents lst2)))))
-
-					; (with-open-file (output "tmp"
-					;                         :direction :output
-					;                         :if-exists :supersede)
-					;                 (progn
-					;                 (mapcar #'(lambda(x) (format output "~a~%" x)) (sort lst1  #'string-lessp))
-					;                 (mapcar #'(lambda(x) (format output "~a~%" x)) (sort lst2  #'string-lessp))))
-
-(defun sum-property-based ()
-  (let ((lst1 (gen-str-list))
-        (lst2 (gen-str-list)))
-    (compare-tries (trie:sum-tries
-                    (trie:make-trie :initial-contents lst1)
-                    (trie:make-trie :initial-contents lst2))
-                   (trie:sum-tries
-                    (trie:make-trie :initial-contents lst2)
-                    (trie:make-trie :initial-contents lst1)))))
-
-(defun insert-property-based ()
-  (let ((lst (gen-str-list)))
-    (let ((isrt (car lst))
-          (init (cdr lst)))
-      (compare-tries (trie:insert (trie:make-trie :initial-contents init) isrt)
-                     (trie:make-trie :initial-contents lst)))))
+(defun create-arrays-test (res-name answer-name win)
+	(with-open-file (output res-name
+							:direction :output
+							:if-exists :supersede)
+			(multiple-value-bind (x-list y-list point) (main:make-arrays-from-win win)
+					(print-array output x-list)
+					(print-array output y-list)
+					(format output "~a~%" point)))
+	(compare-files res-name answer-name))
 
 (lisp-unit:define-test test-1
-		       (lisp-unit:assert-true (creation-test "test/files/test1" "test/files/answers-1" '())))
+		       (lisp-unit:assert-true (parse-string-to-float-test "test/files/result1" "test/files/answers-1" "1 2 3")))
 
 (lisp-unit:define-test test-2
-		       (lisp-unit:assert-true (creation-test "test/files/test2" "test/files/answers-2" '("b" "a" "c"))))
+		       (lisp-unit:assert-true (parse-string-to-float-test "test/files/result2" "test/files/answers-2" "1.2")))
 
 (lisp-unit:define-test test-3
-		       (lisp-unit:assert-true (creation-test "test/files/test3" "test/files/answers-3" '("bac" "acd" "acdb"))))
+		       (lisp-unit:assert-true (parse-string-to-float-test "test/files/result3" "test/files/answers-3" "-1	2.3")))
 
 (lisp-unit:define-test test-4
-		       (lisp-unit:assert-true (insert-test "test/files/test4" "test/files/answers-4" '() "name")))
+		       (lisp-unit:assert-true (add-values-test "test/files/result4" "test/files/answers-4" '((1 2 3) (4 5 6)) '(7 8) 3)))
 
 (lisp-unit:define-test test-5
-		       (lisp-unit:assert-true (insert-test "test/files/test5" "test/files/answers-5" '("b" "a" "c") "c")))
+		       (lisp-unit:assert-true (add-values-test "test/files/result5" "test/files/answers-5" '((1) (2)) '(3 4) 2)))
 
 (lisp-unit:define-test test-6
-		       (lisp-unit:assert-true (insert-test "test/files/test6" "test/files/answers-6" '("b" "a" "c") "ca")))
+		       (lisp-unit:assert-true (add-values-test "test/files/result6" "test/files/answers-6" nil '(7 8) 3)))
 
 (lisp-unit:define-test test-7
-		       (lisp-unit:assert-true (words-test "test/files/test7" "test/files/answers-7" '())))
+		       (lisp-unit:assert-true (push-line-test "test/files/result7" "test/files/answers-7"  nil "7 8" 3)))
 
 (lisp-unit:define-test test-8
-		       (lisp-unit:assert-true (words-test "test/files/test8" "test/files/answers-8" '("b" "a" "c"))))
+		       (lisp-unit:assert-true (push-line-test "test/files/result8" "test/files/answers-8" '((1 2 3) (4 5 6)) nil 3)))
 
 (lisp-unit:define-test test-9
-		       (lisp-unit:assert-true (words-test "test/files/test9" "test/files/answers-9" '("bcd" "bcdf" "cab"))))
+		       (lisp-unit:assert-true (push-line-test "test/files/result9" "test/files/answers-9" '((1 2 3) (4 5 6)) "kljsfd" 3)))
 
 (lisp-unit:define-test test-10
-		       (lisp-unit:assert-true (map-test "test/files/test10" "test/files/answers-10" '() (lambda (x) (length x)))))
+		       (lisp-unit:assert-true (push-line-test "test/files/result10" "test/files/answers-10" '((1 2 3) (4 5 6)) "7 8 9" 3)))
 
 (lisp-unit:define-test test-11
-		       (lisp-unit:assert-true (map-test "test/files/test11" "test/files/answers-11" '("b" "ac" "acb") (lambda (x) (length x)))))
+		       (lisp-unit:assert-true (create-arrays-test "test/files/result11" "test/files/answers-11" '((1 2) (4 5)))))
 
 (lisp-unit:define-test test-12
-		       (lisp-unit:assert-true (search-test "test/files/test12" "test/files/answers-12" '("bcd" "bcdf" "cab") "")))
-
-(lisp-unit:define-test test-13
-		       (lisp-unit:assert-true (search-test "test/files/test13" "test/files/answers-13" '("bcd" "bcdf" "cab") "bc")))
-
-(lisp-unit:define-test test-14
-		       (lisp-unit:assert-true (search-test "test/files/test14" "test/files/answers-14" '("bcd" "bcdf" "cab") "d")))
-
-(lisp-unit:define-test test-15
-		       (lisp-unit:assert-true (delete-test "test/files/test15" "test/files/answers-15" '("bcd" "bcdf" "cab") "")))
-
-(lisp-unit:define-test test-16
-		       (lisp-unit:assert-true (delete-test "test/files/test16" "test/files/answers-16" '("bcd" "bcdf" "cab") "b")))
-
-(lisp-unit:define-test test-17
-		       (lisp-unit:assert-true (delete-test "test/files/test17" "test/files/answers-17" '("bcd" "bcdf" "cab") "ds")))
-
-(lisp-unit:define-test test-18
-		       (lisp-unit:assert-true (sum-test "test/files/test18" "test/files/answers-18" '("bcd" "bcdf" "cab") '("bcd" "bc" "acb"))))
-
-(lisp-unit:define-test test-19
-		       (lisp-unit:assert-true (sum-test "test/files/test19" "test/files/answers-19" '("bcd" "bcdf" "cab") "ds")))
-
-(lisp-unit:define-test test-20
-		       (lisp-unit:assert-true (create-property-based)))
-
-(lisp-unit:define-test test-21
-		       (lisp-unit:assert-true (sum-property-based)))
-
-(lisp-unit:define-test test-22
-		       (lisp-unit:assert-true (insert-property-based)))
+		       (lisp-unit:assert-true (create-arrays-test "test/files/result12" "test/files/answers-12" '((1 2 3 4) (5 6 7 8)))))
 
 (lisp-unit:run-tests)
 
-					; (with-open-file (output "tmp"
-					; 				:direction :output
-					; 				:if-exists :supersede)
-					; 				(print-trie output (copy (make-trie :initial-contents '("abf" "ad" "abd")))))
+; """
+; ;тестовый сценарий, чтобы проверить, что сигналы работают
+; (defun error-caller ()
+;     (error 'push-line-fault :text "line has to contain numbers"))
 
-					; (setf ctrie (copy (make-trie :initial-contents '("abf" "ad" "abd"))))
-
-					; (let ((tr (make-trie :initial-contents '("abf" "ad"))))
-					;  	(delete-trie tr "ab")
-					;  	; (insert tr "abc")
-					; 	tr)
-
-					; (let ((trie (make-instance 'trie)))
-					; 	(insert (insert trie "a") "bcd"))
+; (defun runner ()
+;     (loop for i from 0 to 3
+;         do 
+;         ; (print i )))
+;         (handler-case
+;             (progn (error-caller) (print i))
+;             (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
+; """

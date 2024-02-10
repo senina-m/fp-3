@@ -1,4 +1,4 @@
-(defpackage :newton
+"""(defpackage :newton
   (:use :cl)
   (:export appr-newton))
 
@@ -61,3 +61,4 @@
     (let ((n (length x-list)) 
           (diffs (finit-diff-const x-list y-list))
           (h (abs (- (aref x-list 1) (aref x-list 0)))))))
+          """
