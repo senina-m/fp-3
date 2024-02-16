@@ -13,6 +13,8 @@
 (load "src/input.lisp")
 (load "src/line.lisp")
 (load "src/lagrange.lisp")
+(ql:quickload :generators)
+; (use-package :generators)
 
 (defun parse-string-to-float (line)
   (with-input-from-string (s line)
@@ -71,6 +73,7 @@
                     (aref x-list (/ n 2)))
                  2)))))
 
+
 (defun main (win-size filename &key (line nil) (lagrange nil))
   """Интрополяция потока точек"""
   (format t "line=~a~%" line)
@@ -79,15 +82,23 @@
   (if (/= (mod win-size 2) 0) (format t "Can't find middle of odd window")
     (progn (input:open-file filename)
            (let ((win nil))
-             (loop :for l = (input:get-line)
-                   :until (eq l :eof)
+             (loop with l = (input:get-line)
+                   :until (eq (generators:next l) :eof)
                    :do (handler-case
-                           (progn (setf win (push-line win l win-size))
+                           (progn (setf win (push-line win (generators:next l) win-size))
                                   (print win)
                                   (terpri)
                                   (when (= (length (first win)) win-size)
                                     (multiple-value-bind (x-list y-list point) (make-arrays-from-win win)
-							 (when line (format t "line-appr: (~a ~a)~%" point (line:appr-line x-list y-list point)))
-							 (when lagrange (format t "lagrange-appr: (~a ~a)~%" point (lagrange:appr-lagrange x-list y-list point))))))
+                                      (when line (format t "line-appr: (~a ~a)~%" point (line:appr-line x-list y-list point)))
+                                      (when lagrange (format t "lagrange-appr: (~a ~a)~%" point (lagrange:appr-lagrange x-list y-list point))))))
                          (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
            (input:close-file))))
+
+; (progn
+; (input:open-file "input")
+; (loop with l = (input:get-line)
+;   ; :repeat 10
+;   :until (eq (generators:next l) :eof)
+;   :do (print (generators:next l)))
+;   (input:close-file))

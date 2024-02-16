@@ -17,6 +17,21 @@
 					; (format t "RES=~a~%" result)
 				    (return-from compare-files result)))))
 
+; (defmacro file-based-test (res-name answer-name fun &rest args)
+; 	`(with-open-file (output ,res-name
+;                           :direction :output
+;                           :if-exists :supersede)
+; 		(,fun output ,args))
+;   	`(compare-files ,res-name ,answer-name))
+
+; (defun parse-str-t (str output)
+; 	(format output "(~{~a ~})~%" (main:parse-string-to-float str)))
+
+; (defun test-test (res-name answer-name str)
+; 	(file-based-test res-name answer-name #'parse-str-t str))
+
+; (macroexpand '(file-based-test res-name answer-name #'parse-str-t "1 2"))
+
 (defun parse-string-to-float-test (res-name answer-name str)
   (with-open-file (output res-name
                           :direction :output

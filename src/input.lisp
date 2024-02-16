@@ -6,6 +6,7 @@
            close-file))
 
 (in-package :input)
+(ql:quickload :generators)
 
 (defparameter *stream* nil)
 (defparameter *line-number* 0)
@@ -22,10 +23,16 @@
   (close *stream*))
 
 (defun print-line-number ()
-  (format t "line number:~a~%" *line-number*)
+  (format t "~%~%line number:~a~%" *line-number*)
   (setf *line-number* (+ 1 *line-number*)))
 
-(defun get-line ()
+(defun read-new-line ()
   """Считать строку из файла"""
   (print-line-number)
   (read-line *stream* nil :eof))
+
+(defun get-line ()
+  (generators:make-generator ()
+    (loop :for l = (read-new-line)
+          ; :until (eq l :eof)
+          :do (generators:yield l))))
