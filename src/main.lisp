@@ -14,7 +14,7 @@
 (load "src/line.lisp")
 (load "src/lagrange.lisp")
 (ql:quickload :generators)
-; (use-package :generators)
+					; (use-package :generators)
 
 (defun parse-string-to-float (line)
   (with-input-from-string (s line)
@@ -90,15 +90,37 @@
                                   (terpri)
                                   (when (= (length (first win)) win-size)
                                     (multiple-value-bind (x-list y-list point) (make-arrays-from-win win)
-                                      (when line (format t "line-appr: (~a ~a)~%" point (line:appr-line x-list y-list point)))
-                                      (when lagrange (format t "lagrange-appr: (~a ~a)~%" point (lagrange:appr-lagrange x-list y-list point))))))
+							 (when line (format t "line-appr: (~a ~a)~%" point (line:appr-line x-list y-list point)))
+							 (when lagrange (format t "lagrange-appr: (~a ~a)~%" point (lagrange:appr-lagrange x-list y-list point))))))
                          (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
            (input:close-file))))
 
-; (progn
-; (input:open-file "input")
-; (loop with l = (input:get-line)
-;   ; :repeat 10
-;   :until (eq (generators:next l) :eof)
-;   :do (print (generators:next l)))
-;   (input:close-file))
+					; (progn
+					; (input:open-file "input")
+					; (loop with l = (input:get-line)
+					;   ; :repeat 10
+					;   :until (eq (generators:next l) :eof)
+					;   :do (print (generators:next l)))
+					;   (input:close-file))
+
+					; (defun dice (input)
+					; (generators:make-generator ()
+					;     (with-open-file (file input
+					;                   :direction :input
+					;                   :if-does-not-exist :error)
+					;       (loop :for l = (read-line file nil :eof)
+					;             :until (eq l :eof)
+					;             :do (progn
+					;             ; (print l)
+					;                   (generators:yield l))))))
+
+					; (defun get-line ()
+					;   (generators:make-generator ()
+					;     (loop :for l = (read-new-line)
+					;           ; :until (eq l :eof)
+					;           :do (generators:yield l))))
+
+					; (loop with l = (dice "input" )
+					;   :repeat 10
+					;   :do (print (generators:next l)))
+					;   :until (eq (generators:next l) :eof)

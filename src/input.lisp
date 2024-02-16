@@ -33,6 +33,6 @@
 
 (defun get-line ()
   (generators:make-generator ()
-    (loop :for l = (read-new-line)
-          ; :until (eq l :eof)
-          :do (generators:yield l))))
+			     (loop :for l = (read-new-line)
+					; :until (eq l :eof)
+				   :do (generators:yield l))))
