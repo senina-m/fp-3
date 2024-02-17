@@ -26,13 +26,15 @@
   (format t "~%~%line number:~a~%" *line-number*)
   (setf *line-number* (+ 1 *line-number*)))
 
-(defun read-new-line ()
+(defun read-new-line (filename)
   """Считать строку из файла"""
   (print-line-number)
-  (read-line *stream* nil :eof))
+					; (format t "file=~a~%" filename)
+  (if filename (read-line *stream* nil :eof)
+    (read-line)))
 
-(defun get-line ()
+(defun get-line (filename)
   (generators:make-generator ()
-			     (loop :for l = (read-new-line)
+			     (loop :for l = (read-new-line filename)
 					; :until (eq l :eof)
 				   :do (generators:yield l))))

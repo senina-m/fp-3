@@ -26,6 +26,9 @@
 (define-condition push-line-fault (error)
   ((text :initarg :text :reader push-line-fault-text)))
 
+(define-condition end-of-file-fault (error)
+  ((text :initarg :text :reader end-of-file-fault-text)))
+
 (defun add-values (win nums win-size)
 					;добавляем новый элемент
   (if (null win)
@@ -46,20 +49,22 @@
 
 (defun push-line (win line win-size)
   """Добавление новой пару значений"""
-  (if (null line) (error 'push-line-fault :text "line can't be empty")
-    (let ((nums (parse-string-to-float line)))
-      (cond ; считанная строка не должна быть пустой
-       ((null nums) (error 'push-line-fault :text "line has to contain numbers, but is null"))
+  (cond   ((eq line :eof) (error 'end-of-file-fault :text "reached the end of file"))
+	  ((null line) (error 'push-line-fault :text "line can't be empty"))
+	  (t
+	   (let ((nums (parse-string-to-float line)))
+	     (cond ; считанная строка не должна быть пустой
+	      ((null nums) (error 'push-line-fault :text "line has to contain numbers, but is null"))
 					; в строке должно быть ровно два числа
-       ((/= (length nums) 2) (error 'push-line-fault :text (format nil "line has contain exectly two numbers but has (~{~a ~})" nums)))
+	      ((/= (length nums) 2) (error 'push-line-fault :text (format nil "line has contain exectly two numbers but has (~{~a ~})" nums)))
 					; новый х должен быть больше последнего старого
-       ((and (not (null win))
-             (<= (first nums) (first (first win))))
-        (error 'push-line-fault :text
-               (format t "x(~a) value in numbers pair has to be greater than last x(~a) value in window"
-                       (first nums) (first (first win)))))
+	      ((and (not (null win))
+		    (<= (first nums) (first (first win))))
+	       (error 'push-line-fault :text
+		      (format t "x(~a) value in numbers pair has to be greater than last x(~a) value in window"
+			      (first nums) (first (first win)))))
 					; всё в порядке, добавляем новые значения
-       (t (add-values win nums win-size))))))
+	      (t (add-values win nums win-size)))))))
 
 (defun make-arrays-from-win (win)
   """Подготовка окна к апппроксимации"""
@@ -74,16 +79,16 @@
                  2)))))
 
 
-(defun main (win-size filename &key (line nil) (lagrange nil))
+(defun main (win-size &key (line nil) (lagrange nil) (filename nil))
   """Интрополяция потока точек"""
   (format t "line=~a~%" line)
   (format t "lagrange=~a~%" lagrange)
   (format t "win size=~a~%" win-size)
   (if (/= (mod win-size 2) 0) (format t "Can't find middle of odd window")
-    (progn (input:open-file filename)
+    (progn (when filename (input:open-file filename))
            (let ((win nil))
-             (loop with l = (input:get-line)
-                   :until (eq (generators:next l) :eof)
+             (loop with l = (input:get-line filename)
+					;    :until (eq (generators:next l) :eof)
                    :do (handler-case
                            (progn (setf win (push-line win (generators:next l) win-size))
                                   (print win)
@@ -92,12 +97,14 @@
                                     (multiple-value-bind (x-list y-list point) (make-arrays-from-win win)
 							 (when line (format t "line-appr: (~a ~a)~%" point (line:appr-line x-list y-list point)))
 							 (when lagrange (format t "lagrange-appr: (~a ~a)~%" point (lagrange:appr-lagrange x-list y-list point))))))
-                         (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe))))))
-           (input:close-file))))
+                         (push-line-fault (pe) (format t "~a~%" (push-line-fault-text pe)))
+			 (end-of-file-fault (pe) (progn (format t "~a~%" (end-of-file-fault-text pe))
+						 	(return-from main nil))))))
+           (when filename (input:close-file)))))
 
 					; (progn
 					; (input:open-file "input")
-					; (loop with l = (input:get-line)
+					; (loop with l = (input:get-line "input")
 					;   ; :repeat 10
 					;   :until (eq (generators:next l) :eof)
 					;   :do (print (generators:next l)))
@@ -124,3 +131,5 @@
 					;   :repeat 10
 					;   :do (print (generators:next l)))
 					;   :until (eq (generators:next l) :eof)
+
+					; (main:main 4 :line t :lagrange t :filename "input")
